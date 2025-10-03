@@ -1,15 +1,29 @@
 import ply.lex as lex
 import ply.yacc as yacc
+reserved = {
+    'defun' : 'DEFUN',
+    'if'    : 'IF',
+    'cond'  : 'COND',
+    'car'   : 'CAR',
+    'cdr'   : 'CDR',
+    'cons'  : 'CONS',
+    'eq'    : 'EQ',
+    'nil'   : 'NIL',
+    't'     : 'T',
+}
 
 # Tokens
-tokens = (
-    'PLUS','MINUS','TIMES','DIV','DIVINT','MOD','EXP',
-    'LT','GT','LE','GE','EQ','NE',
-    'LPAREN','RPAREN','QUOTE',
-    'NUMBER','ID'
-)
+tokens = [
+    'LPAREN', 'RPAREN', 'QUOTE', 'NUMBER', 'ID', 'DEFUN',
+    'PLUS', 'MINUS', 'TIMES', 'DIV', 'DIVINT', 'MOD', 'EXP',
+    'LT', 'GT', 'LE', 'GE', 'EQ', 'NE', 'LIST'
+    ] + list(reserved.values())
 
 # Regras léxicas
+t_LPAREN = r'\('
+t_RPAREN = r'\)'
+t_QUOTE = r"\'"
+
 t_PLUS   = r'\+'
 t_MINUS  = r'-'
 t_TIMES  = r'\*'
@@ -25,12 +39,10 @@ t_GE     = r'>='
 t_EQ     = r'='
 t_NE     = r'!='
 
-t_LPAREN = r'\('
-t_RPAREN = r'\)'
-t_QUOTE  = r'\''
+t_ignore = "\t\n\r\ "
 
 def t_NUMBER(t):
-    r'-?\d+'
+    r'0|([1-9][0-9]*)'
     t.value = int(t.value)
     return t
 
@@ -38,17 +50,13 @@ def t_ID(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
     return t
 
+def t_error(t):
+    print(f"Caractere inválido: {t.value[0]}")
+    t.lexer.skip(1)
+
 def t_COMMENT(t):
     r'\;.*'
     pass
-
-t_ignore = ' \t\r\n'
-
-def t_error(t):
-    print(f"Caractere ilegal: {t.value[0]!r}")
-    t.lexer.skip(1)
-
-lexer = lex.lex()
 
 # Parser
 def p_program(p): # Programa = várias expressões
