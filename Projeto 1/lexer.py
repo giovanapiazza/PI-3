@@ -1,6 +1,6 @@
 import ply.lex as lex
 
-# Palavras reservadas da linguagem
+# Palavras reservadas
 reserved = {
     'defun' : 'DEFUN',
     'if'    : 'IF',
@@ -11,21 +11,20 @@ reserved = {
     'eq'    : 'EQ',
     'nil'   : 'NIL',
     't'     : 'T',
+    'div'   : 'DIVINT',
+    'mod'   : 'MOD',
+    'exp'   : 'EXP',
 }
 
 # Lista de tokens
 tokens = [
     'LPAREN', 'RPAREN', 'QUOTE',
     'NUMBER', 'ID',
-
-    # Operadores aritméticos
-    'PLUS', 'MINUS', 'TIMES', 'DIV', 'DIVINT', 'MOD', 'EXP',
-
-    # Operadores relacionais
+    'PLUS', 'MINUS', 'TIMES', 'DIV',
     'LT', 'GT', 'LE', 'GE', 'EQUALS', 'NE',
 ] + list(reserved.values())
 
-# Tokens MULTICARACTERE primeiro
+# Tokens compostos
 t_LE     = r'<='
 t_GE     = r'>='
 t_NE     = r'!='
@@ -34,48 +33,42 @@ t_NE     = r'!='
 t_LT     = r'<'
 t_GT     = r'>'
 t_EQUALS = r'='
-
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
 t_QUOTE  = r"\'"
-
 t_PLUS   = r'\+'
 t_MINUS  = r'-'
 t_TIMES  = r'\*'
 t_DIV    = r'/'
-t_DIVINT = r'div'
-t_MOD    = r'mod'
-t_EXP    = r'exp'
 
-# Ignorar espaços e quebras de linha
-t_ignore = " \t\n\r"
+# Ignorar espaços
+t_ignore = " \t\r"
 
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
 
 def t_NUMBER(t):
-    r'0|([1-9][0-9]*)'
-    t.value = int(t.value)
+    r'\d+(\.\d+)?'
+    t.value = float(t.value) if '.' in t.value else int(t.value)
     return t
 
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
-    t.type = reserved.get(t.value, 'ID')  # Verifica se é palavra reservada
+    t.type = reserved.get(t.value, 'ID')
     return t
 
 def t_COMMENT(t):
     r'\;.*'
-    pass  # Apenas ignora comentários iniciados com ;
+    pass
 
-# Erro lexical
 def t_error(t):
-    print(f"Caractere inválido: {t.value[0]}")
+    print(f"Caractere inválido: {t.value[0]} na linha {t.lexer.lineno}")
     t.lexer.skip(1)
 
 if __name__ == "__main__":
     lexer = lex.lex()
-
     data = "( defun sqr (div 12 0 2 300))"
-
     lexer.input(data)
-
     for tok in lexer:
         print(tok)
